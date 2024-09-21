@@ -1,6 +1,6 @@
 Pandemic game
 
-Back ground
+Background
   - Four severe virus has spread out all over the world. Two players act as disease specilist 
     whose mission is to treat the hotspot while researching final vacines before the situation
     get out of control.
