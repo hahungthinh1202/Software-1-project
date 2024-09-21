@@ -3,12 +3,13 @@ Pandemic Game
 Background
   - Four severe viruses have spread across the world. Two players act as disease specialists whose mission is to treat hotspots while researching final vaccines before the situation gets out of control.
     
-Game Overview:
+Game objectives:
   - Two players must work together to research the cure for all four viruses.
     Control the situation by traveling to hotspots and temporarily treating the disease.
-    Players will lose if 8 outbreaks occur (8 epidemic cards are drawn),
+  - Players will lose if 8 outbreaks occur (8 epidemic cards are drawn),
     the disease spreads too much (not enough disease markers to place on the map),
     or if time runs out (not enough player cards to draw).
+  - Player will win immediately after discover four cures 
     
 Game Flow:
   - Game setup
