@@ -1,3 +1,7 @@
+Database visualized (updated 25/09)
+
+https://lucid.app/lucidchart/8a40251e-b848-447d-8b42-5662e0650fb7/edit?invitationId=inv_51c4a464-47e2-4a5b-8e11-dea5a81ff0c6&page=0_0#
+
 Pandemic Game
 
 Background
