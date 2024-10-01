@@ -9,22 +9,27 @@
                 background-image: url("https://img.freepik.com/premium-photo/world-map-blue-grid-screen_633872-2655.jpg?w=996");
             }
         </style>
+
     </head>
+    <p id="demo"></p>
     <body onload="startGame()">
         <script>
-
             var myGamePiece;
+            let data_out = '{{ data | tojson }}';
+            myObj = JSON.parse(data_out);
+
+            document.getElementById("demo").innerHTML = myObj.red;
 
             function startGame() {
                 myGameArea.start();
-                myGamePiece = new Component(10, 10, "red", 20, 120);
+                myGamePiece = new Component(myObj.red, 10, "red", 20, 120);
             }
 
             var myGameArea = {
                 canvas : document.createElement("canvas"),
                 start : function() {
-                    this.canvas.width = 480;
-                    this.canvas.height = 270;
+                    this.canvas.width = 1024;
+                    this.canvas.height = 720;
                     this.context = this.canvas.getContext("2d");
                     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
                 }
@@ -41,7 +46,6 @@
             }
 
         </script>
-
         <p>We have added a component to our game, a red square !</p>
     </body>
 </html>
