@@ -1,4 +1,6 @@
 import random
+from xmlrpc.client import boolean
+
 import infection
 from os.path import curdir
 
@@ -11,21 +13,23 @@ connection = mysql.connector.connect(
     database='pandemic'
 )
 
-def get_city_connection(city_id): #return a list of city_id that has connection to
+def city_connection(city_id): #return a list of city_id that has connection to
     cursor = connection.cursor()
     cursor.execute(f"select connection from city_db where id = {city_id};")
     data = cursor.fetchall()
     return data[0][0].split(' ')
 
-def get_city_connection_from_player(player_id):
+def city_id_from_player_id(player_id):
     cursor = connection.cursor()
     cursor.execute(f"select city_id from player_current where player_id = {player_id};")
-    return get_city_connection(cursor.fetchone()[0])
+    return cursor.fetchone()[0]
+
+def city_connection_from_player(player_id):
+    return city_connection(city_id_from_player_id(player_id))
 
 def put_cube(city_id,virus,amount):
     cursor = connection.cursor()
     data = is_outbreak(city_id, virus, amount)
-    print(data)
     if data == 4:
         print("out_break")
         outbreak(city_id,virus)
@@ -33,23 +37,32 @@ def put_cube(city_id,virus,amount):
         cursor.execute(f"update city_current set {virus} = {amount+data} where city_id = {city_id};")
         connection.commit()
 
+def remove_cube(city_id,virus,amount):
+    cursor = connection.cursor()
+    cursor.execute(f"update city_current set {virus} = {virus} - {amount} where city_id = {city_id};")
+    connection.commit()
+
+
 def is_outbreak(city_id,virus,amount):
     cursor = connection.cursor()
     cursor.execute(f"select {virus} from city_current where city_id = {city_id};")
     data = int(cursor.fetchone()[0])
-    print(data)
     connection.commit()
     if (amount+data)>3:
         return 4
     else:
         return data
+def is_cure(virus):
+    cursor = connection.cursor()
+    cursor.execute(f"select {virus} from game_current;")
+    return bool(cursor.fetchone()[0])
 
 def outbreak(city_id,virus):
     cursor = connection.cursor()
     cursor.execute(f"update city_current set is_outbreak = True where city_id = {city_id};")
     cursor.execute(f"update city_current set {virus} = {3} where city_id = {city_id};")
     connection.commit()
-    connected_city = get_city_connection(city_id)
+    connected_city = city_connection(city_id)
     for i in connected_city:
         cursor.execute(f"select is_outbreak from city_current where city_id = {i};")
         check_outbreak = cursor.fetchone()[0]
@@ -73,15 +86,17 @@ def reset_city():
     connection.commit()
 
 def set_up_map():
-    infection.reset_discard()
-    set_up_cube = infection.set_up_begin_deck()
     reset_city()
+    set_up_cube = infection.init()
     for i in set_up_cube:
         for j in range(3):
             put_cube(set_up_cube[i][j][0],set_up_cube[i][j][1],i)
 
 def set_up_player_deck(difficulty,num_player):
     cursor = connection.cursor()
+    cursor.execute("delete from player_own")
+    cursor.execute("delete from player_card_current")
+    connection.commit()
     card_list = list(range(1, 49))
     random.shuffle(card_list)
     for i in range(1,num_player+1):
@@ -93,26 +108,28 @@ def set_up_player_deck(difficulty,num_player):
     for i in range(difficulty):
         card_list.insert(random.randint(stack_size*i+i,stack_size*(i+1)+i-1),-1)
     for i in range(len(card_list)):
-        cursor.execute(f"insert into player_card_current values({i+1},{card_list[i]});")
+        cursor.execute(f"insert into player_card_current values({card_list[i]});")
         connection.commit()
 
-def draw_card(player_id):
+def city_name_to_id(city_name):
     cursor = connection.cursor()
-    cursor.execute(f"select player_card_current.city_id, player_card_current.id from player_card_current, game_current "
-                   f"where player_card_current.id = game_current.current_player_card;")
+    cursor.execute(f"select id from city_db where city_name = '{city_name}';")
     data = cursor.fetchone()
-    city = data[0]
-    current_player_card = int(data[1])
-    print(current_player_card)
-    if int(city)<0 :
-        epidemic()
+    if data is None:
+        print("not recognized city name")
+        return False
     else:
-        cursor.execute(f"insert into player_own values({player_id},{city});")
-        cursor.execute(f"update game_current set current_player_card={current_player_card+1};")
-    connection.commit()
+        return data[0]
 
-def epidemic():
-    pass
+def city_id_to_name(city_id):
+    cursor = connection.cursor()
+    cursor.execute(f"select city_name from city_db where id = {city_id};")
+    data = cursor.fetchone()
+    if data is None:
+        print("not recognized city_id")
+        return False
+    else:
+        return data[0]
 
 
 
@@ -120,16 +137,36 @@ def epidemic():
 def get_map_data():
     cursor = connection.cursor()
     map_dict ={}
-    cursor.execute(f"select latitude, longitude,blue,red,yellow,black, research_center from city_current, city_db "
-                   f"where city_id = id and blue>0 or black>0 or yellow>0 or red>0 or research_center>0;")
+    cursor.execute(f"select city_id, blue, violet, red, yellow, research_center from city_current "
+                   f"where  blue>0 or violet>0 or yellow>0 or red>0 or research_center>0;")
     data = cursor.fetchall()
     return data
 
-def return_player_location(player_id):
+def get_city_data_from_player(player_id):
     cursor = connection.cursor()
-    cursor.execute(f"select latitude, longitude from city_db, player_current "
-                   f"where id = city_id and player_id = {player_id};")
-    data = cursor.fetchone()
+    cursor.execute(f"select city_current.city_id, blue, violet, red, yellow from city_current,player_current "
+                   f"where city_current.city_id = player_current.city_id and player_id = {player_id}; ")
+    data = cursor.fetchall()
+    return data[0]
+
+def return_player_location():
+    cursor = connection.cursor()
+    cursor.execute(f"select player_id, latitude, longitude from city_db, player_current "
+                   f"where id = city_id order by player_id;")
+    data = cursor.fetchall()
     connection.commit()
     return data
+
+def return_city_location(city_id):
+    cursor = connection.cursor()
+    cursor.execute(f"select latitude, longitude from city_db where id = {city_id}; ")
+    data = cursor.fetchall()
+    return data[0]
+
+def game_init(difficulty,num_player):
+    set_up_map()
+    set_up_player_deck(difficulty, num_player)
+
+def check_win():
+    print("check win/lose condition")
 

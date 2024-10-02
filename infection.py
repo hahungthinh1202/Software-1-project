@@ -1,6 +1,8 @@
 import mysql.connector
 import random
 
+import basic
+
 connection = mysql.connector.connect(
     host='localhost',
     user='root',
@@ -20,8 +22,9 @@ def reset_deck():
 
 #first reset deck, pick 3 card to put 3 cube, 2 cards to put 2 cube and 1 card to put 1 cube
 #return dictionary
-def set_up_begin_deck():
+def init():
     reset_deck()
+    reset_discard()
     three_cube = select_top_three()
     two_cube = select_top_three()
     one_cube = select_top_three()
@@ -31,6 +34,7 @@ def set_up_begin_deck():
 def discard(card_id):
     cursor = connection.cursor()
     cursor.execute(f"insert into infection_discard values ({card_id});")
+    cursor.execute(f"delete from infection_deck where city_id = {card_id};")
     connection.commit()
 
 #remove all card data from discard pile
@@ -45,6 +49,7 @@ def select_top():
     cursor.execute(f"select * from infection_deck;")
     data = cursor.fetchall()
     return data[-1][0]
+
 
 #return the bottom card of the active deck
 def select_bottom():
@@ -80,3 +85,12 @@ def select_top_three():
         connection.commit()
         discard(i[0])
     return data_out
+
+def epidemic():
+    cursor = connection.cursor()
+    city_id = select_bottom()
+    cursor.execute(f"select virus from city_db where id = {city_id};")
+    virus = cursor.fetchone()[0]
+    basic.put_cube(city_id, virus,3)
+    discard(city_id)
+    return_discard()

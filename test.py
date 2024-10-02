@@ -1,9 +1,13 @@
+from prettytable import PrettyTable
+from sqlalchemy.sql.operators import truediv
+import player
 import action
 import basic
-#func.reset_infection_deck()
-#func.reset_infection_discard()
-#func.set_up_infection_deck()
+import infection
+from basic import city_name_to_id, return_player_location
+import prettytable
 
-#print(basic.return_player_location(1))
+#basic.game_init(6,2)
+print(infection.epidemic())
 
 
