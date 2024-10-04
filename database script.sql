@@ -152,7 +152,7 @@ create table infection_discard
 insert into player_current
 values
     (1,'thinh',5,'medic','g1'),
-    (2,'Lu',5,'scientist','g1');
+    (2,'Tam',5,'scientist','g1');
 
 
 create table player_own
@@ -175,11 +175,12 @@ create table game_current
     blue bool default false,
     violet bool default false,
     red bool default false,
-    yellow bool default false
+    yellow bool default false,
+    research_center int default 1
 );
 
 insert into game_current
-values ('g1',0,0, FALSE,FALSE,FALSE,FALSE);
+values ('g1',0,0, FALSE,FALSE,FALSE,FALSE, 1);
 
 
 

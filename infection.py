@@ -1,6 +1,7 @@
 import mysql.connector
 import random
 
+import SQL
 import basic
 
 connection = mysql.connector.connect(
@@ -11,17 +12,15 @@ connection = mysql.connector.connect(
 )
 #shuffle all 48 card together
 def reset_deck():
-    cursor = connection.cursor()
-    cursor.execute("delete from infection_deck;")
-    connection.commit()
+    SQL.update("delete from infection_deck;")
     order = list(range(1,49))
     random.shuffle(order)
     for i in order:
-        cursor.execute(f"insert into infection_deck values ({i});")
-        connection.commit()
+        SQL.update(f"insert into infection_deck values ({i});")
 
 #first reset deck, pick 3 card to put 3 cube, 2 cards to put 2 cube and 1 card to put 1 cube
 #return dictionary
+
 def init():
     reset_deck()
     reset_discard()
@@ -32,65 +31,67 @@ def init():
 
 #move one card from active deck to discard pile
 def discard(card_id):
-    cursor = connection.cursor()
-    cursor.execute(f"insert into infection_discard values ({card_id});")
-    cursor.execute(f"delete from infection_deck where city_id = {card_id};")
-    connection.commit()
+    SQL.update(f"insert into infection_discard values ({card_id});")
+    SQL.update(f"delete from infection_deck where city_id = {card_id};")
 
 #remove all card data from discard pile
 def reset_discard():
-    cursor = connection.cursor()
-    cursor.execute("delete from infection_discard;")
-    connection.commit()
+    SQL.update("delete from infection_discard;")
 
 #return the top card of the active deck
 def select_top():
-    cursor = connection.cursor()
-    cursor.execute(f"select * from infection_deck;")
-    data = cursor.fetchall()
+    data = SQL.query_all(f"select * from infection_deck;")
     return data[-1][0]
 
 
 #return the bottom card of the active deck
 def select_bottom():
-    cursor = connection.cursor()
-    cursor.execute(f"select * from infection_deck limit 1;")
-    data = cursor.fetchall()
+    data = SQL.query_all(f"select * from infection_deck limit 1;")
     return data[-1][0]
 
 #shuffle all card from discard pile and put back on top of the active deck
 def return_discard():
-    cursor = connection.cursor()
-    cursor.execute(f"select * from infection_discard;")
-    data = cursor.fetchall()
+    data = SQL.query_all(f"select * from infection_discard;")
     data_out = []
     for i in data:
         data_out.append(i[0])
     random.shuffle(data_out)
     for i in data_out:
-        cursor.execute(f"insert into infection_deck values ({i});")
-    connection.commit()
+        SQL.update(f"insert into infection_deck values ({i});")
     reset_discard()
     return data_out
 
 #pick 3 top card from active deck and put into the discard pile
 def select_top_three():
-    cursor = connection.cursor()
-    cursor.execute(f"select city_id, virus from infection_deck right join city_db on id = city_id limit 3;")
-    data = cursor.fetchall()
+    data = SQL.query_all(f"select city_id, virus from infection_deck right join city_db on id = city_id limit 3;")
     data_out = []
     for i in data:
         data_out.append(i)
-        cursor.execute(f"delete from infection_deck where city_id = {i[0]};")
-        connection.commit()
+        SQL.update(f"delete from infection_deck where city_id = {i[0]};")
         discard(i[0])
     return data_out
 
 def epidemic():
-    cursor = connection.cursor()
     city_id = select_bottom()
-    cursor.execute(f"select virus from city_db where id = {city_id};")
-    virus = cursor.fetchone()[0]
-    basic.put_cube(city_id, virus,3)
+    virus = SQL.query_one(f"select virus from city_db where id = {city_id};")
+    basic.put_cube(city_id, virus[0],3)
     discard(city_id)
+    print(f"Epidemic happen at {basic.cityId_to_cityName(city_id)}!")
+    SQL.update(f"update game_current set infection_track = infection_track + 1;")
     return_discard()
+
+def infect():
+    infection_rate = basic.return_game_info()[0]
+    card_draw = 2
+    if infection_rate in [3,4]:
+        card_draw = 3
+    elif infection_rate >= 5:
+        card_draw = 4
+    for i in range(card_draw):
+        city_id = select_top()
+        print(f"Infect state! Disease level at {basic.cityId_to_cityName(city_id)} increased by 1")
+        virus = SQL.query_one(f"select virus from city_db where id = {city_id};")
+        basic.put_cube(city_id, virus[0], 1)
+        discard(city_id)
+
+
