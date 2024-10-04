@@ -4,6 +4,7 @@ import threading
 import color
 import action
 import basic
+import infection
 import player
 
 
@@ -16,18 +17,19 @@ class ParallelThread(threading.Thread):
       commands.put(command)
 
 def print_cube(x,y,amount,colour):
+
     if amount == 1:
-        pygame.draw.rect(game_window, colour,(x,y,10,10))
+        game_window.blit(virus_graphic[colour], (x, y))
     elif amount == 2:
-        pygame.draw.rect(game_window, colour,(x-7,y,10,10))
-        pygame.draw.rect(game_window, colour,(x+7,y,10,10))
+        game_window.blit(virus_graphic[colour], (x, y))
+        game_window.blit(virus_graphic[colour], (x-9, y+5))
     elif amount == 3:
-        pygame.draw.rect(game_window, colour,(x-7,y-7,10,10))
-        pygame.draw.rect(game_window, colour,(x,  y+7,10,10))
-        pygame.draw.rect(game_window, colour,(x+7,y-7,10,10))
+        game_window.blit(virus_graphic[colour], (x, y))
+        game_window.blit(virus_graphic[colour], (x-9, y+5))
+        game_window.blit(virus_graphic[colour], (x+9, y+5))
 
 def print_player():
-    player_location = basic.return_player_location()
+    player_location = basic.return_player_coordinate()
     if player_location[0][1] == player_location[1][1]:
         game_window.blit(p1, (player_location[0][1] -10, player_location[0][2] - 25))
         game_window.blit(p2, (player_location[1][1] , player_location[1][2] - 25))
@@ -36,23 +38,36 @@ def print_player():
         game_window.blit(p2, (player_location[1][1]-5,player_location[1][2]-25))
 
 
-def print_city():
-    data = basic.get_map_data()
+def print_map():
+    data = basic.return_all_city_situation()
     for mem in data:
         if sum(mem[1:5])<4:
-            l = basic.return_city_location(mem[0])
-            print_cube(l[0], l[1], mem[blue], color.blue)
-            print_cube(l[0], l[1], mem[violet], color.violet)
-            print_cube(l[0], l[1], mem[red], color.red)
-            print_cube(l[0], l[1], mem[yellow], color.orange)
+            l = basic.return_city_coordinate(mem[0])
+            print_cube(l[0], l[1], mem[blue], 'blue')
+            print_cube(l[0], l[1], mem[violet], 'violet')
+            print_cube(l[0], l[1], mem[red], 'red')
+            print_cube(l[0], l[1], mem[yellow], 'yellow')
+    data = basic.return_game_info()
+    pygame.draw.circle(game_window, color.brown,(48+24*data[0],550), 9)
+    pygame.draw.circle(game_window, color.orange, (48 + 24 * data[1], 480), 9)
 
-
+def print_action_menu(player_id,action_point):
+    print(f"Player {player_id} turn, you have {action_point} action points and this is your current knowledge:")
+    player.display(player_id)
+    print("Available action: move, treat, cure, build.")
 
 pygame.init()   #init pygame
 game_window = pygame.display.set_mode((1200, 720)) #create game window
-imp = pygame.image.load("C:\\Users\\thinh\\OneDrive\\Desktop\\map_pandemic.png").convert() #set background img location
-p1 = pygame.image.load("C:\\Users\\thinh\\OneDrive\\Desktop\\pawn_yellow.png")
-p2 = pygame.image.load("C:\\Users\\thinh\\OneDrive\\Desktop\\pawn_red.png")
+imp = pygame.image.load("graphic/map pandemic.png").convert() #set background img location
+p1 = pygame.image.load("graphic/pawn_yellow.png")
+p2 = pygame.image.load("graphic/pawn_red.png")
+virus_graphic = {
+    'blue' : pygame.image.load("graphic/blue.png"),
+    'violet' : pygame.image.load("graphic/violet.png"),
+    'red' : pygame.image.load("graphic/red.png"),
+    'yellow' : pygame.image.load("graphic/yellow.png")
+}
+
 game_window.blit(imp, (0, 0),)
 
 
@@ -69,8 +84,8 @@ disease_list = ['blue','violet','red','yellow']
 state = action_menu
 data_list = []
 city_list = []
-player_id = 1
-action_point  = 400
+current_player = 1
+action_point  = 4
 last_command = ''
 
 game_window.blit(imp, (0, 0))
@@ -82,19 +97,18 @@ while not quit_game:
         command = None
 
     if state == action_menu:
-        print("This is ", state," state")
-        print(f'this is player {player_id} turn, you have {action_point} action left')
-        print('please choose: move, treat, cure, build.')
+        print_action_menu(current_player, action_point)
         state = action_detail
 
     elif state == action_detail and command is not None:
-        print("This is ", state, " state")
         last_command = command
         state = action_execute
         if command == 'move':
-            data_list = action.move_info(player_id)
+            data_list = action.move_info(current_player)
         elif command == 'treat':
-            data_list = action.treat_info(player_id)
+            data_list = action.treat_info(current_player)
+            if not data_list:
+                state = action_menu
         elif command == 'cure':
             print("cure")
         elif command == 'build':
@@ -112,14 +126,14 @@ while not quit_game:
                 state = action_execute
             elif destination_id in data_list['drive']:
                 print("run move_execute action")
-                action.move_execute(player_id, destination_id)
+                action.move_execute(current_player, destination_id)
             elif destination_id in data_list['fly']:
-                player.discard(player_id,destination_id)
-                action.move_execute(player_id, destination_id)
+                player.discard(current_player, destination_id)
+                action.move_execute(current_player, destination_id)
                 print("fly to", command)
             elif data_list['jet'][0]:
-                action.move_execute(player_id, destination_id)
-                player.discard(player_id, data_list['jet'])
+                action.move_execute(current_player, destination_id)
+                player.discard(current_player, data_list['jet'])
                 print("jet to", command)
             elif destination_id in data_list['rc']:
                 print("rc")
@@ -129,7 +143,7 @@ while not quit_game:
 
         elif last_command == 'treat':
             if command in disease_list:
-                action.treat_execute(player_id,command ,data_list[disease_list.index(command)+1])
+                action.treat_execute(current_player, command, data_list[disease_list.index(command) + 1])
                 state = check
             else:
                 print("Did not recognise command")
@@ -140,17 +154,22 @@ while not quit_game:
             print("execute build")
 
     elif state == check:
-        basic.check_win()
         action_point = action_point - 1
         if action_point == 0:
-            player_id = 1 + player_id % 2
+            player.draw(current_player)
+            player.draw(current_player)
+            current_player = 1 + current_player % 2
             action_point = 4
+            infection.infect()
+
+        basic.reset_outbreak_flag()
+        basic.check_win()
         state = action_menu
 
 
     game_window.blit(imp, (0, 0))
     print_player()
-    print_city()
+    print_map()
 
 
     pygame.display.flip()

@@ -67,10 +67,11 @@ def move_info(player_id):
     return move_dict
 
 def treat_info(player_id):
-    data = basic.get_city_data_from_player(player_id)
+    data = basic.return_city_situation_from_player(player_id)
     check_sum = sum(data[1:6])
     if check_sum == 0:
         print("No disease in this city, cannot treat!")
+        return False
     else:
         print("City x situation:")
         if data[1]:
@@ -82,8 +83,8 @@ def treat_info(player_id):
         if data[4]:
             print(f"Yellow disease is at level {data[4]}")
         print("Which disease you want to treat?")
+        return data
 
-    return data
 
 
 def treat_execute(player_id,virus,current_level):

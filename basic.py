@@ -1,9 +1,5 @@
 import random
-from xmlrpc.client import boolean
-
 import infection
-from os.path import curdir
-
 import mysql.connector
 
 connection = mysql.connector.connect(
@@ -31,9 +27,9 @@ def put_cube(city_id,virus,amount):
     cursor = connection.cursor()
     data = is_outbreak(city_id, virus, amount)
     if data == 4:
-        print("out_break")
         outbreak(city_id,virus)
     else:
+        print(f"{virus} level at {city_id_to_name(city_id)} raised from {data} to {amount+data}", )
         cursor.execute(f"update city_current set {virus} = {amount+data} where city_id = {city_id};")
         connection.commit()
 
@@ -52,6 +48,7 @@ def is_outbreak(city_id,virus,amount):
         return 4
     else:
         return data
+
 def is_cure(virus):
     cursor = connection.cursor()
     cursor.execute(f"select {virus} from game_current;")
@@ -59,21 +56,23 @@ def is_cure(virus):
 
 def outbreak(city_id,virus):
     cursor = connection.cursor()
+    print("Out break happen at", city_id_to_name(city_id))
     cursor.execute(f"update city_current set is_outbreak = True where city_id = {city_id};")
     cursor.execute(f"update city_current set {virus} = {3} where city_id = {city_id};")
+    cursor.execute(f"update game_current set outbreak_track = outbreak_track + 1;")
     connection.commit()
     connected_city = city_connection(city_id)
     for i in connected_city:
+        print(f"Disease spread into {city_id_to_name(i)}")
         cursor.execute(f"select is_outbreak from city_current where city_id = {i};")
         check_outbreak = cursor.fetchone()[0]
         connection.commit()
         if not check_outbreak:
-            print("put_cube",i)
             put_cube(i,virus,1)
 
 def reset_outbreak_flag():
     cursor = connection.cursor()
-    cursor.execute(f"update city_current set is_outbreak = False where is_outbreak = True;")
+    cursor.execute(f"update city_current set is_outbreak = 0")
     connection.commit()
 
 def reset_city():
@@ -85,8 +84,15 @@ def reset_city():
     cursor.execute(f"update city_current set research_center = True where city_id = 5;")
     connection.commit()
 
+def reset_game_track():
+    cursor = connection.cursor()
+    cursor.execute(f"update game_current set outbreak_track = 0, infection_track = 0, "
+                   f"blue = 0, violet = 0, red = 0, yellow = 0;")
+    connection.commit()
+
 def set_up_map():
     reset_city()
+    reset_game_track()
     set_up_cube = infection.init()
     for i in set_up_cube:
         for j in range(3):
@@ -106,7 +112,7 @@ def set_up_player_deck(difficulty,num_player):
     connection.commit()
     stack_size  = int(len(card_list)/difficulty)
     for i in range(difficulty):
-        card_list.insert(random.randint(stack_size*i+i,stack_size*(i+1)+i-1),-1)
+        card_list.insert(random.randint(stack_size*i+i,stack_size*(i+1)+i-1),-i-1)
     for i in range(len(card_list)):
         cursor.execute(f"insert into player_card_current values({card_list[i]});")
         connection.commit()
@@ -131,10 +137,14 @@ def city_id_to_name(city_id):
     else:
         return data[0]
 
+def return_game_info():
+    cursor = connection.cursor()
+    cursor.execute(f"select infection_track, outbreak_track from game_current;")
+    data = cursor.fetchone()
+    return data
 
 
-
-def get_map_data():
+def return_all_city_situation():
     cursor = connection.cursor()
     map_dict ={}
     cursor.execute(f"select city_id, blue, violet, red, yellow, research_center from city_current "
@@ -142,14 +152,14 @@ def get_map_data():
     data = cursor.fetchall()
     return data
 
-def get_city_data_from_player(player_id):
+def return_city_situation_from_player(player_id):
     cursor = connection.cursor()
     cursor.execute(f"select city_current.city_id, blue, violet, red, yellow from city_current,player_current "
                    f"where city_current.city_id = player_current.city_id and player_id = {player_id}; ")
     data = cursor.fetchall()
     return data[0]
 
-def return_player_location():
+def return_player_coordinate():
     cursor = connection.cursor()
     cursor.execute(f"select player_id, latitude, longitude from city_db, player_current "
                    f"where id = city_id order by player_id;")
@@ -157,7 +167,7 @@ def return_player_location():
     connection.commit()
     return data
 
-def return_city_location(city_id):
+def return_city_coordinate(city_id):
     cursor = connection.cursor()
     cursor.execute(f"select latitude, longitude from city_db where id = {city_id}; ")
     data = cursor.fetchall()

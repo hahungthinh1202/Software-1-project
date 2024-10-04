@@ -93,4 +93,25 @@ def epidemic():
     virus = cursor.fetchone()[0]
     basic.put_cube(city_id, virus,3)
     discard(city_id)
+    print("epidemic happen! new city", basic.city_id_to_name(city_id))
+    cursor.execute(f"update game_current set infection_track = infection_track + 1;")
     return_discard()
+
+def infect():
+    cursor = connection.cursor()
+    infection_rate = basic.return_game_info()[0]
+    card_draw = 2
+    if infection_rate in [3,4]:
+        card_draw = 3
+    elif infection_rate >= 5:
+        card_draw = 4
+    for i in range(card_draw):
+        city_id = select_top()
+        print(f"Infect state! Disease level at {basic.city_id_to_name(city_id)} increased by 1")
+        cursor.execute(f"select virus from city_db where id = {city_id};")
+        virus = cursor.fetchone()[0]
+        basic.put_cube(city_id, virus, 1)
+        discard(city_id)
+
+    connection.commit()
+

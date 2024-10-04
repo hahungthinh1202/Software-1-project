@@ -1,8 +1,8 @@
-import random
-import infection
-from os.path import curdir
 import basic
+import infection
 import mysql.connector
+from prettytable import PrettyTable
+
 
 connection = mysql.connector.connect(
     host='localhost',
@@ -18,8 +18,10 @@ def draw(player_id):
     data = data[-1][0]
 
     if int(data)<0 :
+        print(f"player draw epidemic card")
         infection.epidemic()
     else:
+        print(f"player draw {basic.city_id_to_name(data)} card")
         cursor.execute(f"insert into player_own values({player_id},{data});")
 
     cursor.execute(f"delete from player_card_current where city_id = {data};")
@@ -32,6 +34,10 @@ def discard(player_id,card_id):
 
 def display(player_id):
     cursor = connection.cursor()
+    my_table = PrettyTable()
     cursor.execute(f"select city_name,virus from player_own,city_db where player_id = {player_id} and card_id = id order by virus;")
     data = cursor.fetchall()
-    return data
+    for i in data:
+        my_table.add_column(i[0], [i[1]])
+    print(my_table)
+    return my_table
