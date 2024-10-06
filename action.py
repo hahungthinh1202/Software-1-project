@@ -161,27 +161,33 @@ def cure_check(player_id):
                  'yellow': [],
                  'cure': []
                  }
+    card_check = SQL.query_all(f"select virus,id from player_own, city_db "
+                               f"where player_id = {player_id} and card_id = id order by virus;")
+    rc_check = SQL.query_one(f"select research_center from city_current, player_current "
+                                    f"where player_id = {player_id} and city_current.city_id  = player_current.city_id;")
 
-    data = SQL.query_all(f"select virus,id from player_own, city_db where player_id = {1} and card_id = id order by virus;")
-    for i in data:
+    for i in card_check:
         cure_data[i[0]].append(i[1])
     for i in cure_data:
         if len(cure_data[i]) >= 4:
             cure_data['cure'].append(i)
-    if cure_data['cure'] == []:
-        return False
-    else:
+
+    if cure_data['cure'] and rc_check[0] == 1:
         return cure_data
+    else:
+        return False
 
 def cure_print (cure_dict):
     for i in cure_dict['cure']:
         print(f"Or you can discard 4 {i} card to find the vaccine of the {i} disease")
 
 def cure_execute(player_id,cure_dict, cube_color):
-    if cube_color not in cure_dict:
+    if cube_color not in cure_dict.keys():
         print(f"you are unable to treat {cube_color} disease")
+        return False
     else:
         SQL.update(f"update game_current set {cube_color} = 1;")
         for i in range(4):
             player.discard(player_id,cure_dict[cube_color][0])
             cure_dict[cube_color].pop(0)
+        return True

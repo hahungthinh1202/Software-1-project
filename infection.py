@@ -73,10 +73,12 @@ def select_top_three():
 
 def epidemic():
     city_id = select_bottom()
+    news_title = SQL.query_one(f"select story from event where id  = {random.randint(1, 20)};")
+    news_title = news_title[0].replace('{city_name}', basic.cityId_to_cityName(city_id))
+    print(news_title)
     virus = SQL.query_one(f"select virus from city_db where id = {city_id};")
     basic.put_cube(city_id, virus[0],3)
     discard(city_id)
-    print(f"Epidemic happen at {basic.cityId_to_cityName(city_id)}!")
     SQL.update(f"update game_current set infection_track = infection_track + 1;")
     return_discard()
 

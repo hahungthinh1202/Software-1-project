@@ -1,6 +1,7 @@
 import random
 import SQL
 import infection
+import basic
 
 def city_connection(city_id): #return a list of city_id that has connection to
     data = SQL.query_all(f"select connection from city_db where id = {city_id};")
@@ -54,24 +55,27 @@ def reset_city():
     SQL.update("delete from city_current")
     for i in range(1,49):
         SQL.update(f"insert into city_current values ({i}, 0, 0, 0, 0, false, false);")
-    SQL.update(f"update city_current set research_center = True where city_id = 5;")
+    SQL.update(f"update city_current set research_center = True where city_id = 10;")
 
 
 def reset_game_track():
     SQL.update(f"update game_current set outbreak_track = 0, infection_track = 0, "
                    f"blue = 0, violet = 0, red = 0, yellow = 0, research_center = 1;")
 
+def reset_player():
+    SQL.update("update player_current set city_id = 10 where player_id = 1;")
+    SQL.update("update player_current set city_id = 10 where player_id = 2;")
 
 def set_up_map():
     reset_city()
     reset_game_track()
+    reset_player()
     set_up_cube = infection.init()
     for i in set_up_cube:
         for j in range(3):
             put_cube(set_up_cube[i][j][0],set_up_cube[i][j][1],i)
 
 def set_up_player_deck(difficulty,num_player):
-
     SQL.update("delete from player_own")
     SQL.update("delete from player_card_current")
     card_list = list(range(1, 49))
@@ -131,11 +135,13 @@ def game_init(difficulty,num_player):
     set_up_player_deck(difficulty, num_player)
 
 def check_win():
-    outbreaK_amount = SQL.query_one(f"select outbreak_track from game_current;")[0]
+    game_info = SQL.query_one(f"select outbreak_track, blue, violet, red, yellow from game_current;")
     player_deck  = SQL.query_all(f"select city_id from player_card_current limit 1;")
     basic.reset_outbreak_flag()
-    if  player_deck is None or outbreaK_amount >7:
-        return True
+    if  player_deck is None or game_info[0] >7:
+        return 'lose'
+    elif sum(game_info[1:5]) == 4:
+        return 'win'
     return False
 
 

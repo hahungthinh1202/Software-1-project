@@ -7,7 +7,7 @@ drop table player_current;
 drop table player_own;
 drop table game_current;
 drop table player_card_current;
-
+drop table event;
 
 create table city_DB
 (
@@ -149,10 +149,38 @@ create table infection_discard
     city_id varchar(40) default null
 );
 
+create table event(
+    id varchar(40) not null,
+    story varchar(200) default null
+);
+
+insert into event
+values
+    (1,'Mysterious Epidemic Sweeps Through {city_name}: Hospitals Overwhelmed as Cases Surge'),
+    (2,'{city_name} on High Alert: Health Officials Scramble to Contain Fast-Spreading Virus'),
+    (3,'Epidemic Outbreak at {city_name}: Thousands Infected as City Faces Unprecedented Health Crisis'),
+    (4,'State of Emergency Declared at {city_name}: Local Authorities Battle Rapidly Growing Epidemic'),
+    (5,'Contagion Crisis: Quarantine Enforced at {city_name} as Epidemic Spirals Out of Control'),
+    (6,'Health Crisis Escalates at {city_name}: Schools, Businesses Shut Down Amid Epidemic Fears'),
+    (7,'Epidemic Wreaks Havoc: Hospitals at {city_name} Reach Capacity, Urgent Response Launched'),
+    (8,'Deadly Epidemic Hits {city_name}: Officials Warn of Public Health Catastrophe'),
+    (9,'Massive Infection Spike: {city_name} Residents Urged to Stay Indoors as Epidemic Spreads'),
+    (10,'Epidemic Forces Lockdown: {city_name} Streets Empty as Health Workers Race to Contain Virus'),
+    (11,'{city_name} Paralyzed by Epidemic: Government Rushes to Deploy Emergency Resources'),
+    (12,'Epidemic Surge: Experts Warn of New Wave of Infections as {city_name} Struggles to Cope'),
+    (13,'Breaking: {city_name} Faces Critical Shortage of Medical Supplies Amid Epidemic Chaos'),
+    (14,'Public Health in {city_name}: City Declares Martial Law to Control Epidemic Spread'),
+    (15,'Epidemic Sparks Panic: Citizens Flee as Infections Multiply Across {city_name}'),
+    (16,'Hospitals on the Brink: Healthcare System Crumbles Under Weight of Epidemic at {city_name}'),
+    (17,'{city_name} Lockdown Enforced: Epidemic Pushes Local Authorities to Extreme Measures'),
+    (18,'Contagion Spreads at {city_name}: Medical Teams Mobilized as Epidemic Claims More Lives'),
+    (19,'Urgent Action Needed: Experts Warn Epidemic Could Spread Beyond {city_name} Borders'),
+    (20,'Epidemic Threatens to Overwhelm {city_name}: Critical Infrastructure Under Strain');
+
 insert into player_current
 values
-    (1,'thinh',5,'medic','g1'),
-    (2,'Tam',5,'scientist','g1');
+    (1,'thinh',10,'medic','g1'),
+    (2,'Lu',10,'scientist','g1');
 
 
 create table player_own
