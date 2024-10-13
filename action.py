@@ -3,13 +3,20 @@ import SQL
 import player
 from basic import cityId_to_cityName
 
+# This module include all the function that run the player action
+# There are four action move/treat/cure/build
+# Each action is derived into three small function step
+# 1. Action check (_check). Generally return a dictionary of needed info if action is available, return false otherwise.
+# 2. Action print (_print). Simply accept the dictionary from previous function and print out.
+# 3. Action execute (_execute). Execute the action, update database needed.
 
+# Move action. There are some (_info) function, use to gather information of different move type.
 # Return city id list that player can drive/ferry into (neighbor city of current player location)
 def move_drive_info(player_id):
     return basic.city_connection(basic.playerId_to_cityId(player_id))
 
 # Return city id list that player can discard corresponding card to fly directly into.
-# Return [False] if player does not have any card
+# Return [False] if player does not have any card.
 def move_fly_info(player_id):
     data_raw = SQL.query_all(f"select card_id from player_own where player_id = {player_id};")
     if data_raw is not None:
@@ -25,8 +32,8 @@ def move_fly_info(player_id):
     else:
         return [False]
 
-#Return city id card that player can discard to fly anywhere
-#Return [False] if player does not meet the requirement (player's location is the same as 1 of his/her city card)
+# Return city id card that player can discard to fly anywhere
+# Return [False] if player does not meet the requirement (player's location is the same as 1 of his/her city card)
 def move_jet_info(player_id):
     data = SQL.query_one(f"select card_id from player_own, player_current "
                          f"where player_current.city_id = player_own.card_id and player_current.player_id = player_own.player_id and player_own.player_id = {player_id};")
@@ -35,8 +42,8 @@ def move_jet_info(player_id):
     else:
         return data[0]
 
-#Return list of city id that player can fly directly
-#Return [False] if there is only 1 research center in the map or player are not stay at one.
+# Return list of city id that player can fly directly
+# Return [False] if there is only 1 research center in the map or player are not stay at one.
 def move_rc_info(player_id):
     check_rc_amount = SQL.query_one(f"select research_center from game_current")
     check_location = SQL.query_one(f"select city_current.city_id from city_current, player_current "
@@ -49,6 +56,7 @@ def move_rc_info(player_id):
     else:
         return [False]
 
+# Return the dictionary of available city id that for each move type, player can move into.
 def move_check(player_id):
     move_dict = {'drive': move_drive_info(player_id),
                  'fly': move_fly_info(player_id),
@@ -57,6 +65,7 @@ def move_check(player_id):
                  }
     return move_dict
 
+# Print out the move available option
 def move_detail_print(move_dict):
     print("you can drive/ferry to", [basic.cityId_to_cityName(i) for i in move_dict['drive']])
     if move_dict['fly']:
@@ -68,6 +77,8 @@ def move_detail_print(move_dict):
         print(f"Or you can fly directly to these city", [basic.cityId_to_cityName(i) for i in move_dict['rc']],
               "that have a research center:")
 
+# Execute move, update the player location, discard suitable card if player use fly move or jet move
+# Return True if move is done successfully or False if player cannot make the move.
 def move_execute(player_id, city_id,move_dict):
     if city_id in move_dict['drive'] + move_dict['fly'] + move_dict['rc']:
         SQL.update(f"update player_current set city_id = {city_id} where player_id = {player_id};")
@@ -82,6 +93,8 @@ def move_execute(player_id, city_id,move_dict):
         print(f"You can not move to {basic.cityId_to_cityName(city_id)}")
         return False
 
+# Return the dictionary of available virus color and its amount if higher than zero, in the current player location.
+# If city does not have any virus, the dictionary will be empty {}, and thus return False. Otherwise, return the dictionary.
 def treat_check(player_id):
     data = basic.return_city_situation_from_player(player_id)
     treat_dict = {

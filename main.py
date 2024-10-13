@@ -10,7 +10,8 @@ from str_list import *
 win_lose = False
 quit_game = False
 
-
+# This class create a class that run in a separate thread of control.
+# The purpose is that player can use input() in parallel with the game loop.
 class ParallelThread(threading.Thread):
   def run(self):
     while not quit_game:
@@ -20,6 +21,7 @@ commands = queue.Queue()
 instance = ParallelThread()
 instance.start()
 
+# This function get the input of the player and return two part of the command
 def get_command(data):
     c1 = None
     c2 = None
@@ -43,37 +45,47 @@ def get_command(data):
     else:
         return [c1, c2]
 
+# Simply return a new player id (1->2) or (2->1) and reset action point back to 4
 def next_player(player_id):
     return 1 + player_id % 2 , 4
 
-def main_menu_print(s,string):
-    if string == "up":
-        s = s - 1
-        if s < 1: s = 1
-    elif string == "down":
-        s = s + 1
-        if s > 3: s = 3
-    elif string == "ok":
-        if s == 1:
+
+# Finite state machine for the main menu
+# At the moment only the first selection will execute game_init function with preset difficulty of 6 and 2 players
+def main_menu_print(selection,command):
+    print("input 'up','down' to change the selection, input 'ok' to select the option"
+          "\nAt the moment only the first selection will execute game_init function with preset difficulty of 6 and 2 players")
+    if command == "up":
+        selection = selection - 1
+        if selection < 1: selection = 1
+    elif command == "down":
+        selection = selection + 1
+        if selection > 3: selection = 3
+    elif command == "ok":
+        if selection == 1:
             basic.game_init(6, 2)
-            print("do 1")
-        elif s == 2:
-            print("do 2")
-        elif s == 3:
-            print("do 3")
+        elif selection == 2:
+            pass
+        elif selection == 3:
+            pass
         return False
-    graphic.print_main_menu(250, 172 + s * 57)
-    return s
+    graphic.print_main_menu(250, 172 + selection * 57)
+    return selection
 
-
+# Create state control variable and state tuple
 (main_menu, action_menu, action_execute, computer, endgame) = ('main_menu','action_menu','action_execute','computer', 'endgame')
+current_state = main_menu
+next_state    = main_menu
 
-state = main_menu
+# Main menu option and print out the main menu when open the program. This is still have room for future update.
 my_choice = 1
 main_menu_print(my_choice, "")
-next_state = main_menu
+
+# Set the first player and action point counter.
 current_player = 1
 action_point  = 4
+
+# Flag variable
 flag = 0
 while not quit_game:
     try:
@@ -81,11 +93,11 @@ while not quit_game:
     except queue.Empty:
         command = None
 
-    if state == main_menu and command is not None:
+    if   current_state == main_menu and command is not None:
         my_choice = main_menu_print(my_choice, command)
         if not my_choice:
             next_state = action_menu
-    elif state == action_menu:
+    elif current_state == action_menu:
         graphic.print_action_menu(current_player, action_point)
 
         move_data  = action.move_check(current_player)
@@ -103,7 +115,7 @@ while not quit_game:
         if cure_data:
             action.cure_print(cure_data)
         next_state = action_execute
-    elif state == action_execute:
+    elif current_state == action_execute:
         if command is not None and get_command(command):
             [command_1, command_2] = get_command(command)
             if command_1 == 'move':
@@ -121,7 +133,7 @@ while not quit_game:
                 print("Please retype the action again!")
             else:
                 next_state = computer
-    elif state == computer:
+    elif current_state == computer:
         action_point = action_point - 1
         if action_point == 0:
             player.draw(current_player)
@@ -133,13 +145,14 @@ while not quit_game:
             next_state = endgame
         else:
             next_state = action_menu
-    elif state == endgame:
+    elif current_state == endgame:
         graphic.print_endgame(win_lose)
 
 
-    if state != main_menu and state != endgame:
+    if current_state != main_menu and current_state != endgame:
         graphic.print_map()
-    state = next_state
+
+    current_state = next_state
 
     for e in pygame.event.get():
         if e.type == pygame.QUIT:

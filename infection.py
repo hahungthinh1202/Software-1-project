@@ -43,7 +43,6 @@ def select_top():
     data = SQL.query_all(f"select * from infection_deck;")
     return data[-1][0]
 
-
 #return the bottom card of the active deck
 def select_bottom():
     data = SQL.query_all(f"select * from infection_deck limit 1;")
