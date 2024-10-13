@@ -10,7 +10,8 @@ from str_list import *
 win_lose = False
 quit_game = False
 
-
+# This class create a class that run in a separate thread of control.
+# The purpose is that player can use input() in parallel with the game loop.
 class ParallelThread(threading.Thread):
   def run(self):
     while not quit_game:
@@ -46,24 +47,23 @@ def get_command(data):
 def next_player(player_id):
     return 1 + player_id % 2 , 4
 
-def main_menu_print(s,string):
-    if string == "up":
-        s = s - 1
-        if s < 1: s = 1
-    elif string == "down":
-        s = s + 1
-        if s > 3: s = 3
-    elif string == "ok":
-        if s == 1:
+def main_menu_print(selection,command):
+    if command == "up":
+        selection = selection - 1
+        if selection < 1: selection = 1
+    elif command == "down":
+        selection = selection + 1
+        if selection > 3: selection = 3
+    elif command == "ok":
+        if selection == 1:
             basic.game_init(6, 2)
-            print("do 1")
-        elif s == 2:
-            print("do 2")
-        elif s == 3:
-            print("do 3")
+        elif selection == 2:
+            pass
+        elif selection == 3:
+            pass
         return False
-    graphic.print_main_menu(250, 172 + s * 57)
-    return s
+    graphic.print_main_menu(250, 172 + selection * 57)
+    return selection
 
 
 (main_menu, action_menu, action_execute, computer, endgame) = ('main_menu','action_menu','action_execute','computer', 'endgame')
@@ -81,7 +81,7 @@ while not quit_game:
     except queue.Empty:
         command = None
 
-    if state == main_menu and command is not None:
+    if   state == main_menu and command is not None:
         my_choice = main_menu_print(my_choice, command)
         if not my_choice:
             next_state = action_menu

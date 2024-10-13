@@ -1,4 +1,5 @@
 use pandemic;
+/*
 drop table city_DB;
 drop table city_current;
 drop table infection_deck;;
@@ -8,6 +9,7 @@ drop table player_own;
 drop table game_current;
 drop table player_card_current;
 drop table event;
+*/
 
 create table city_DB
 (
@@ -30,6 +32,7 @@ create table city_current
     research_center bool default false,
     is_outbreak bool default false
 );
+
 insert into city_current values
     ( 1,0,0,0,0,0,0),
     ( 2,0,0,0,0,0,0),

@@ -3,14 +3,22 @@ import SQL
 import infection
 import basic
 
-def city_connection(city_id): #return a list of city_id that has connection to
+# This module has all the miscancellus functions that are not yet or unable to categorize into other group.
+# These function is not optimized and may be unnecessary.
+
+# Recieve city_id and return a list of city_id that has connection to
+def city_connection(city_id):
     data = SQL.query_all(f"select connection from city_db where id = {city_id};")
     return data[0][0].split(' ')
 
+# Recieve player id and return player's current city location id
 def playerId_to_cityId(player_id):
     data = SQL.query_one(f"select city_id from player_current where player_id = {player_id};")
     return data[0]
 
+# Add cube into a specific city
+# The maximum of cube of each color is 3. if maximum is surpassed, an outbreak execute in this city,
+# if not, update amount of cube in current city database.
 def put_cube(city_id,virus,amount):
     data = is_outbreak(city_id, virus, amount)
     if data == 4:
@@ -19,10 +27,14 @@ def put_cube(city_id,virus,amount):
         print(f"{virus} level at {cityId_to_cityName(city_id)} raised from {data} to {amount + data}", )
         SQL.update(f"update city_current set {virus} = {amount+data} where city_id = {city_id};")
 
+# Remove cube from specific city, basically update the current city database
 def remove_cube(city_id,virus,amount):
     SQL.update(f"update city_current set {virus} = {virus} - {amount} where city_id = {city_id};")
 
-
+# Check if city could outbreak if an amount of virus is add to that city
+# Simply get the current amount of virus from database and add to the new amount
+# If the result is more than three then this is out break.
+# Or return the new amount of cube after added
 def is_outbreak(city_id,virus,amount):
     data = SQL.query_one(f"select {virus} from city_current where city_id = {city_id};")
     data = int(data[0])
@@ -31,10 +43,19 @@ def is_outbreak(city_id,virus,amount):
     else:
         return data
 
+# Return true if the vaccine for that virus is found
 def is_cure(virus):
     data = SQL.query_one(f"select {virus} from game_current;")
     return bool(data[0])
 
+# Execute the outbreak sequence of a specific city with specific virus:
+# 1. Set the outbreak flag of this city to True to avoid chain outbreak (city can only outbreak one per player turn).
+#    Flag will be reset after player turn
+# 2. Set the maximum of three cubes in that city.
+# 3. Increase the outbreak track in the game map.
+# 4. For every connected city, first check if that city is already outbreak during the current turn.
+#    If yes, do nothing,
+#    If no, put one cube of the same color. This could also trigger another outbreak.
 def outbreak(city_id,virus):
     print("Out break happen at", cityId_to_cityName(city_id))
     SQL.update(f"update city_current set is_outbreak = True where city_id = {city_id};")
@@ -47,25 +68,30 @@ def outbreak(city_id,virus):
         if not check_outbreak[0]:
             put_cube(i,virus,1)
 
+# Reset the outbreak flag of everycity
 def reset_outbreak_flag():
     SQL.update(f"update city_current set is_outbreak = 0")
 
-
+# Reset the current data of every city (four virus color to zero, research center and outbreak flag to False)
 def reset_city():
     SQL.update("delete from city_current")
     for i in range(1,49):
         SQL.update(f"insert into city_current values ({i}, 0, 0, 0, 0, false, false);")
     SQL.update(f"update city_current set research_center = True where city_id = 10;")
 
-
+# Reset the current game track (Outbreak track and infection track back to zero)
 def reset_game_track():
     SQL.update(f"update game_current set outbreak_track = 0, infection_track = 0, "
                    f"blue = 0, violet = 0, red = 0, yellow = 0, research_center = 1;")
 
+# Reset the location of both player, back to Helsinki
+# This function should recieve a parameter player_amount, thus not limited in only two.
 def reset_player():
     SQL.update("update player_current set city_id = 10 where player_id = 1;")
     SQL.update("update player_current set city_id = 10 where player_id = 2;")
 
+# Set up for a new game.
+# Everything in the map (virus cube, game track and infection deck).
 def set_up_map():
     reset_city()
     reset_game_track()
@@ -75,6 +101,20 @@ def set_up_map():
         for j in range(3):
             put_cube(set_up_cube[i][j][0],set_up_cube[i][j][1],i)
 
+# Set up for a new game.
+# Reset player deck base of difficulty and amount of player
+# 1. Keyword and sequence explained:
+#    - Player deck is a comprised of city card and a set amount of epidemic card
+#    - In the end of a turn, player will draw two player card. Thus can be either good city card or
+#    bad epidemic card (which will trigger an epidemic)
+#    - The difficulty, is the amount of epidemic card that will be shuffle into the player deck.
+# 2. Set up sequence
+#    - Delete everything from the corresponding table
+#    - Random a list of number from 1-48 called list A
+#    - Deal four cards for each player by remove number of list A, and insert into own table. The remain called list B.
+#    - Divide list B into specific equal deck base of amount of epidemic card. then insert negative number
+#      start from -1 to present epidemic card into those equal deck create list C.
+#    - Insert list C into the current player card table.
 def set_up_player_deck(difficulty,num_player):
     SQL.update("delete from player_own")
     SQL.update("delete from player_card_current")
@@ -90,7 +130,7 @@ def set_up_player_deck(difficulty,num_player):
     for i in range(len(card_list)):
         SQL.update(f"insert into player_card_current values({card_list[i]});")
 
-
+# Return city name from city Id, return false if city id is incorrect or not in database
 def cityName_to_cityId(city_name):
     data = SQL.query_one(f"select id from city_db where city_name = '{city_name}';")
     if data is None:
@@ -98,6 +138,7 @@ def cityName_to_cityId(city_name):
     else:
         return data[0]
 
+# Reverse of previous function
 def cityId_to_cityName(city_id):
     data = SQL.query_one(f"select city_name from city_db where id = '{city_id}';")
     if data is None:
@@ -106,34 +147,42 @@ def cityId_to_cityName(city_id):
     else:
         return data[0]
 
+# Get game infomation as shown in the sql command. This function is used to get information to display on map
+# and to find correct amount of cubes to be remove in treat action (one if vaccine found or up to three otherwise).
 def return_game_info():
     data = SQL.query_one(f"select infection_track, outbreak_track, blue, violet, red, yellow from game_current;")
     return data
 
-
+# Return the virus cube amount or research center of all the cities that has some. This is used to display on map.
 def return_all_city_situation():
     data = SQL.query_all(f"select city_id, blue, violet, red, yellow, research_center from city_current "
                         f"where  blue>0 or violet>0 or yellow>0 or red>0 or research_center>0;")
     return data
 
+# Return the virus cube situation of player current location. Used to show available option for player to treat.
 def return_city_situation_from_player(player_id):
     data = SQL.query_all(f"select city_current.city_id, blue, violet, red, yellow from city_current,player_current "
                         f"where city_current.city_id = player_current.city_id and player_id = {player_id}; ")
     return data[0]
 
+# Return player longitude and latitude from current location. I am not sure if this function is really neccessary.
 def return_player_coordinate():
     data = SQL.query_all(f"select player_id, latitude, longitude from city_db, player_current "
                         f"where id = city_id order by player_id;")
     return data
 
+# Return city latitude and longtitude from city ID. Also, as previous function, both could be implemented in some
+# other way that is more neat, this should be improved later.
 def return_city_coordinate(city_id):
     data = SQL.query_all(f"select latitude, longitude from city_db where id = {city_id}; ")
     return data[0]
 
+# Set up a new game, include map and player hand.
 def game_init(difficulty,num_player):
     set_up_map()
     set_up_player_deck(difficulty, num_player)
 
+# Return False if game is not yet reached end condition. Otherwise, return 'win' or 'lose.
 def check_win():
     game_info = SQL.query_one(f"select outbreak_track, blue, violet, red, yellow from game_current;")
     player_deck  = SQL.query_all(f"select city_id from player_card_current limit 1;")
