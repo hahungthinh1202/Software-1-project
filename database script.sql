@@ -1,14 +1,6 @@
+create database pandemic;
 use pandemic;
 
-drop table city;
-drop table infection_deck;;
-drop table infection_discard;
-drop table player_current;
-drop table player_own;
-drop table game_current;
-drop table player_card_current;
-drop table event;
-drop table tutorial;
 
 create table tutorial(
     story varchar(200) default null

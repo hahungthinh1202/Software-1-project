@@ -7,14 +7,14 @@ connection = mysql.connector.connect(
     database='pandemic'
 )
 
-def query_one(command):
+def queryOne(command):
     cursor = connection.cursor()
     cursor.execute(command)
     data = cursor.fetchone()
     discard = cursor.fetchall()
     return data
 
-def query_all(command):
+def queryAll(command):
     cursor = connection.cursor()
     cursor.execute(command)
     return cursor.fetchall()

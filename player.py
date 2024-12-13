@@ -8,8 +8,8 @@ import infection
 # First get the top card id from the player_card_current table and then check
 # If a negative id card is draw (epidemic card) an epidemic from infection module is executed
 # else update the player_own table by inserting a new row of card id and player id
-def draw(player_id):
-    data = SQL.query_all(f"select city_id from player_card_current limit 1;")
+def drawCard(player_id):
+    data = SQL.queryAll(f"select city_id from player_card_current limit 1;")
     returnData = False
     if not data:
         return returnData
@@ -23,7 +23,7 @@ def draw(player_id):
             }
         else:
             SQL.update(f"insert into player_own values({player_id},{data});")
-            cityName = SQL.query_one(f"select city_name from city where id = {int(data)};")[0]
+            cityName = SQL.queryOne(f"select city_name from city where id = {int(data)};")[0]
             returnData = {
                 'eventType' : 'cardDraw',
                 'story': f"You have drawn<n>{cityName} card"

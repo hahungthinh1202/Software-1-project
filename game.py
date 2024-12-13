@@ -7,14 +7,14 @@ import SQL
 
 # Set up a new game, include map and player hand.
 def game_init(difficulty,num_player):
-    basic.set_up_map()
-    basic.set_up_player_deck(difficulty, num_player)
+    basic.setUpMap()
+    basic.setUpPlayerDeck(difficulty, num_player)
 
 def gameLogic(command_1, command_2):
     gameStory = []
     if command_1 == "gameInit":
-        game_init(4,2)
-        gameStory.append(basic.check_win())
+        game_init(3,2)
+        gameStory.append(basic.checkWinLoseCondition())
         gameStory.append({
             'eventType' : 'story',
                 'story': f"welcome to the game"
@@ -32,7 +32,7 @@ def gameLogic(command_1, command_2):
         return gameData(gameStory)
     elif command_1 == "gameInitTutorial":
         game_init(1, 2)
-        gameStory.append(basic.check_win())
+        gameStory.append(basic.checkWinLoseCondition())
         gameStory.append({
             'eventType': 'story',
             'story': f"welcome to Pandemic game"
@@ -60,8 +60,8 @@ def gameLogic(command_1, command_2):
         print("update")
         return gameData(gameStory)
     else:
-        current_player, action_point = basic.return_current_player_info()
-        move_data  = action.move_check(current_player)
+        current_player, action_point = basic.getPlayerInfo()
+        move_data  = action.moveCheck(current_player)
         treat_data = action.treat_check(current_player)
         cure_data = action.cure_check(current_player)
         if command_1 == 'move':
@@ -74,16 +74,16 @@ def gameLogic(command_1, command_2):
         elif command_1 == 'cure':
             action.cure_execute(current_player, cure_data, command_2)
         if action_point == 1:
-            gameStory.append(player.draw(current_player))
-            gameStory.append(player.draw(current_player))
+            gameStory.append(player.drawCard(current_player))
+            gameStory.append(player.drawCard(current_player))
             gameStory += infection.infect()
-        basic.update_player_turn(current_player)
-        gameStory.append(basic.check_win())
+        basic.updatePlayerTurn(current_player)
+        gameStory.append(basic.checkWinLoseCondition())
     return gameData(gameStory)
 
 
 def gameData(gameStory):
-    current_player, action_point = basic.return_current_player_info()
+    current_player, action_point = basic.getPlayerInfo()
     return_data = {
         'action': {
             'move': action.move_check_info(current_player),
@@ -92,8 +92,8 @@ def gameData(gameStory):
             'cure': action.cure_check(current_player)
                 },
         'player': basic.return_player_coordinate(),
-        'city'  : basic.return_all_city_situation(),
-        'game'  : basic.return_game_info(),
+        'city'  : basic.returnAllCitySituation(),
+        'game'  : basic.returnGameInfo(),
         'own'   : action.player_own_info(current_player),
         'computerInfo': gameStory
     }
