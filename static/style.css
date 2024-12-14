@@ -51,18 +51,18 @@ header {
 .main_img {
   display: block;
   margin: auto;
-  width: 100%;
+  width: 80%;
 }
 .float_right{
     float: right;
 }
 
-.product_row{
+.displayRow{
     display: flex;
     width: 100%;
 }
 
-.product_image{
+.actionTutorial{
     display: block;
     margin: auto;
     width: 100%;
@@ -73,13 +73,18 @@ header {
     font-size: 12px;
 }
 
-.product_item{
-    width: 33.33%;
+.action{
+    width: 25%;
+    padding: 0.5rem 0.5rem;
+
+}
+.winLose{
+    width: 50%;
     padding: 0.5rem 0.5rem;
 
 }
 
-.product_title{
+.actionTile{
     text-align: center;
 }
 

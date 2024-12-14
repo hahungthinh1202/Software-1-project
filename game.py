@@ -13,7 +13,7 @@ def game_init(difficulty,num_player):
 def gameLogic(command_1, command_2):
     gameStory = []
     if command_1 == "gameInit":
-        game_init(3,2)
+        game_init(7,2)
         gameStory.append(basic.checkWinLoseCondition())
         gameStory.append({
             'eventType' : 'story',

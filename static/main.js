@@ -280,10 +280,11 @@ function drawGraphic(){
   dx = (dx+1)%160
   if (data['computerInfo']){
     context.drawImage(background,0,0);
+    drawPlayerPawn(data)
     drawAllPlayerCard(data)
     drawGameInfo(data,-dy[dx%16]*0.5)
     drawAllVirusCube(data)
-    drawPlayerPawn(data)
+
     drawAllMoveIndicator(data,dy[dx%16])
     drawStory(data)
   }

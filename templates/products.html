@@ -15,37 +15,56 @@
     <div class = "container">
         <header>
             <nav>
-                <img class = "logo" src="../static/img/logo.webp" alt = "chikamics logo">
-                <a class = "menu_item float_right" href="/contact/">Contact</a>
-                <a class = "menu_item float_right" href="/products/">Game</a>
-                <a class = "menu_item float_right" href="/main/" >Home</a>
+                <a class = "menu_item float_right" href="/contact/">About us</a>
+                <a class = "menu_item float_right" href="/products/">How to play</a>
+                <a class = "menu_item float_right" href="/main/" >Play game</a>
             </nav>
         </header>
 
         <main>
-            <img class ="main_img" src="../static/img/productpageimg.webp" alt="feature cute mug item">
-            <p class = "main_text">A cute ceramic collection is a delightful ensemble of hand-crafted or artisanal pieces that bring charm and whimsy to any space.</p>
-            <div class = "product_row">
-                <div class = "product_item">
-                    <h2 class ="product_title"> Spirited away mug</h2>
-                    <img class = "product_image" src = "../static/img/product1.webp" alt="product image 1">
-                    <p class = "figure_caption">Spirited away</p>
-                    <p>A Spirited Away-themed mug typically features artwork or characters inspired by the beloved Studio Ghibli film directed by Hayao Miyazaki.</p>
+            <img class ="main_img" src="../static/img/howtoplayMain.png" alt="feature cute mug item">
+            <p class = "main_text">Several virulent diseases have broken out simultaneously all over the world!
+                The players are disease-fighting specialists whose mission is to treat disease hotspots while
+                researching cures for each of four plagues before they get out of hand.<br><br>
+                Each turn, current player must do 4 actions. Select any combinations of the available actions below.
+            </p>
+            <div class = "displayRow">
+                <div class = "action">
+                    <h2 class ="actionTile"> MOVE</h2>
+                    <img class = "actionTutorial" src = "../static/img/moveTutorial.png" alt="product image 1">
+                    <p>Location icon only display in the place that you can move to. Click on that icon to move there.</p>
                 </div>
-                <div class = "product_item">
-                    <h2 class ="product_title"> Cat vs zombies mug</h2>
-                    <img class = "product_image" src = "../static/img/product2.webp" alt="product image 2">
-                    <p class = "figure_caption">Redesign of Plant vs zombie game</p>
-                    <p>A Plants vs. Zombies mug is a vibrant and playful piece of mug inspired by the iconic tower-defense video game.</p>
+                <div class = "action">
+                    <h2 class ="actionTile">TREAT</h2>
+                    <img class = "actionTutorial" src = "../static/img/cureTutorial.png" alt="product image 2">
+                    <p>Treat button is available when you are in a city that have 1 or more disease cube. Click on TREAT button will remove 1 disease cube from the city you are in.</p>
 
                 </div>
-                <div class = "product_item">
-                    <h2 class ="product_title"> No face mug</h2>
-                    <img class = "product_image" src = "../static/img/product3.webp" alt="product image 3">
-                    <p class = "figure_caption">No face from Ghibli</p>
-                    <p>A No-Face mug inspired by Spirited Away is a charming and artistic mug piece that celebrates one of the film's most iconic characters.</p>
+                <div class = "action">
+                    <h2 class ="actionTile"> BUILD</h2>
+                    <img class = "actionTutorial" src = "../static/img/buildTutorial.png" alt="product image 3">
+                    <p>Build button is available when you have City card that matches the city you are in. Click on BUILD button build a research center here.</p>
+                </div>
+                <div class = "action">
+                    <h2 class ="actionTile"> CURE</h2>
+                    <img class = "actionTutorial" src = "../static/img/treatTutorial.png" alt="product image 4">
+                    <p>Cure action is available if you are located at any research station AND have at least 4 City cards of the same color. Click on CURE button to discard those card and discover the correspond vaccine color.</p>
+                </div>
+
+            </div>
+            <div class = "displayRow">
+                <div class = "winLose">
+                    <h2 class ="actionTile">WIN CONDITION</h2>
+                    <img class = "actionTutorial" src = "../static/img/winTutorial.png" alt="product image 5">
+                    <p>Players collectively win the game immediately when the cures to all 4 diseases are discovered.</p>
+                </div>
+                <div class = "winLose">
+                    <h2 class ="actionTile">LOSE CONDITION</h2>
+                    <img class = "actionTutorial" src = "../static/img/loseTutorial.png" alt="product image 6">
+                    <p>The game immediately ends in defeat for all players if The outbreaks marker reaches last space of the Outbreaks track</p>
                 </div>
             </div>
+
 
 
         </main>
